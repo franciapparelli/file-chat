@@ -45,7 +45,7 @@ async function handleUserInput() {
                 console.error('There was a problem with the fetch operation:', error);
                 addMessage('Sorry, there was an error processing your request.');
             }
-        }, 1000);
+        }, 1);
     }
 }
 

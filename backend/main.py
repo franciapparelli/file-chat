@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 os.environ["GOOGLE_API_KEY"] = "AIzaSyDAX_9KcqA3vkHdbWm6q4AuznZ3J8V0xbM"
 
 genai.configure()
+
 # Create the model
 generation_config = {
   "temperature": 1,
@@ -28,7 +29,7 @@ chat_session = model.start_chat(
   [
     {
       "role": "user",
-      "parts": "Mi nombre es Franco"
+      "parts": ""
     }
   ]
 )
