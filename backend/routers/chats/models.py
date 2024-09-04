@@ -1,5 +1,10 @@
 import sqlite3
 from sqlite3 import Error
+from pydantic import BaseModel
+
+class Chat(BaseModel):
+    chatName: str
+    userId: int
 
 def create_chats_table(conn):
     try:

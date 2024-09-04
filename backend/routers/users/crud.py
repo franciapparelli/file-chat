@@ -28,3 +28,19 @@ def get_user(conn, username):
     except Error as e:
         print(f"Error al obtener el usuario: {e}")
         return None
+
+
+def get_all_users(conn):
+    try:
+        sql_select = """
+        SELECT * FROM Users;
+        """
+        print(conn.cursor)
+        cursor = conn.cursor()
+        cursor.execute(sql_select)
+        rows = cursor.fetchall()  # Obtener todas las filas
+        print(rows)
+        return rows  # Retornar todas las filas como una lista de tuplas
+    except Error as e:
+        print(f"Error al obtener el usuario: {e}")
+        return None

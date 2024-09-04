@@ -1,22 +1,23 @@
 from fastapi import APIRouter, HTTPException
 from db.conn_db import create_connection
 from .crud import insert_chat, get_chat, get_all_chats
+from .models import Chat
 
 router = APIRouter()
 
-@router.post("/chats/")
-async def create_chat(chatName: str, userId: int):
+@router.post("/")
+async def create_chat(chat: Chat):
     conn = create_connection()
     if conn:
         try:
-            insert_chat(conn, chatName, userId)
+            insert_chat(conn, chat.chatName, chat.userId)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Error al crear chat: {e}")
         finally:
             conn.close()
     return {"message": "Chat creado exitosamente"}
 
-@router.get("/chats/{chatId}")
+@router.get("/{chatId}")
 async def read_chat(chatId: int):
     conn = create_connection()
     if conn:
@@ -30,7 +31,7 @@ async def read_chat(chatId: int):
         finally:
             conn.close()
 
-@router.get("/chats/")
+@router.get("/")
 async def read_chats():
     conn = create_connection()
     if conn:

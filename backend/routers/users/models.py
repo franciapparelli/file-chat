@@ -1,5 +1,10 @@
 import sqlite3
 from sqlite3 import Error
+from pydantic import BaseModel
+
+class User(BaseModel):
+    username: str
+    password: str
 
 def create_users_table(conn):
     try:

@@ -1,14 +1,14 @@
 import sqlite3
 from sqlite3 import Error
 
-def insert_message(conn, chatId, userId, messageText):
+def insert_message(conn, chatId, userId, content):
     try:
         sql_insert = """
-        INSERT INTO Messages (chatId, userId, messageText)
+        INSERT INTO Messages (chatId, userId, content)
         VALUES (?, ?, ?);
         """
         cursor = conn.cursor()
-        cursor.execute(sql_insert, (chatId, userId, messageText))
+        cursor.execute(sql_insert, (chatId, userId, content))
         conn.commit()
         print("Mensaje insertado exitosamente.")
     except Error as e:

@@ -1,22 +1,23 @@
 from fastapi import APIRouter, HTTPException
 from db.conn_db import create_connection
 from .crud import insert_message, get_message, get_messages_by_chat
+from .models import Message
 
 router = APIRouter()
 
-@router.post("/messages/")
-async def create_message(chatId: int, userId: int, messageText: str):
+@router.post("/")
+async def create_message(message: Message):
     conn = create_connection()
     if conn:
         try:
-            insert_message(conn, chatId, userId, messageText)
+            insert_message(conn, message.chatId, message.userId, message.content)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Error al crear mensaje: {e}")
         finally:
             conn.close()
     return {"message": "Mensaje creado exitosamente"}
 
-@router.get("/messages/{messageId}")
+@router.get("/{messageId}")
 async def read_message(messageId: int):
     conn = create_connection()
     if conn:
@@ -36,7 +37,7 @@ async def read_message(messageId: int):
         finally:
             conn.close()
 
-@router.get("/messages/chat/{chatId}")
+@router.get("/chat/{chatId}")
 async def read_messages_by_chat(chatId: int):
     conn = create_connection()
     if conn:

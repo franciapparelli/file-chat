@@ -1,5 +1,11 @@
 import sqlite3
 from sqlite3 import Error
+from pydantic import BaseModel
+
+class Message(BaseModel):
+    chatId: int
+    userId: int
+    content: str
 
 def create_messages_table(conn):
     try:
