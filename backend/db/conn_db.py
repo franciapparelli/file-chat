@@ -3,7 +3,7 @@ from sqlite3 import Error
 
 def create_connection():
     database = "db/chat_db.db"
-    
+
     db_file = database
     conn = None
     try:
@@ -39,6 +39,8 @@ def makeQuery(query):
 # Conectar y crear la tabla
 conn = create_connection()
 
-if conn:
-    create_tabla_messages(conn)
-    conn.close()
+# if conn:
+#     makeQuery(""" 
+
+# """)
+#     conn.close()
