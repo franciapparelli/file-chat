@@ -5,17 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChatAI - Asistente de Inteligencia Artificial</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Agregamos estilos para el botón en la esquina superior izquierda */
+        #add-chat-button {
+            position: static;
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #add-chat-button:hover {
+            background-color: #0056b3;
+        }
+
+        .main-container {
+            position: relative; /* Asegura que el botón se posicione relativo a este contenedor */
+        }
+    </style>
 </head>
 <body>
     <div class="main-container">
         <div class="sidebar">
             <div class="sidebar-header">Historial de Chats</div>
+            <button id="add-chat-button">Agregar Chat</button>
             <ul class="chat-history">
-                <li class="active">Chat actual</li>
-                <li>Conversación sobre IA</li>
-                <li>Planificación de proyecto</li>
-                <li>Consulta técnica</li>
-                <li>Análisis de datos</li>
             </ul>
         </div>
         <div class="chat-container">
