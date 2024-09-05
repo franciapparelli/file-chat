@@ -17,15 +17,15 @@ async def create_chat(chat: Chat):
             conn.close()
     return {"message": "Chat creado exitosamente"}
 
-@router.get("/{chatId}")
-async def read_chat(chatId: int):
+@router.get("/{userId}")
+async def read_chat(userId: int):
     conn = create_connection()
     if conn:
         try:
-            chat = get_chat(conn, chatId)
-            if chat is None:
+            chats = get_chat(conn, userId)
+            if chats is None:
                 raise HTTPException(status_code=404, detail="Chat no encontrado")
-            return {"chatId": chat[0], "chatName": chat[1], "userId": chat[2]}
+            return [{"chatId": chat[0], "chatName": chat[1], "userId": chat[2]} for chat in chats]
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Error al obtener chat: {e}")
         finally:

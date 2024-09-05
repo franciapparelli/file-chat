@@ -9,7 +9,8 @@ const chatHistory = document.querySelector('.chat-history');
 
 document.addEventListener('DOMContentLoaded', () => {
     // URL del endpoint para obtener chats del usuario
-    const chatsUrl = 'http://127.0.0.1:8000/chats'; // Ajusta la URL según tu configuración
+    let userId = localStorage.getItem("userId")
+    const chatsUrl = `http://127.0.0.1:8000/chats/${userId}`; // Ajusta la URL según tu configuración
 
     // Función para cargar los chats
     async function loadChats() {
@@ -50,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadChats();
 
     // Función para agregar un nuevo chat
-    document.getElementById('add-chat-button').addEventListener('click', async () => {
+    async function addChat(){
         const chatName = prompt('Ingresa el título del nuevo chat:');
     
         if (!chatName) {
@@ -76,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error al agregar el chat:', error);
         }
-    });
+    };
 });
 
 let chats = document.getElementsByClassName('chat');

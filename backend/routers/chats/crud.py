@@ -14,14 +14,14 @@ def insert_chat(conn, chatName, userId):
     except Error as e:
         print(f"Error al insertar el chat: {e}")
 
-def get_chat(conn, chatId):
+def get_chat(conn, userId):
     try:
         sql_select = """
-        SELECT * FROM Chats WHERE chatId = ?;
+        SELECT * FROM Chats WHERE userId = ?;
         """
         cursor = conn.cursor()
-        cursor.execute(sql_select, (chatId,))
-        return cursor.fetchone()
+        cursor.execute(sql_select, (userId,))
+        return cursor.fetchall()
     except Error as e:
         print(f"Error al obtener el chat: {e}")
         return None
