@@ -7,6 +7,121 @@ const fileOptions = document.querySelectorAll('.file-option');
 const fileInputs = document.querySelectorAll('.file-input');
 const chatHistory = document.querySelector('.chat-history');
 
+document.addEventListener('DOMContentLoaded', () => {
+    // URL del endpoint para obtener chats del usuario
+    const chatsUrl = 'http://127.0.0.1:8000/chats'; // Ajusta la URL según tu configuración
+
+    // Función para cargar los chats
+    async function loadChats() {
+        try {
+            const response = await fetch(chatsUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener los chats');
+            }
+
+            const chats = await response.json();
+            updateChatHistory(chats);
+        } catch (error) {
+            console.error('Error al cargar los chats:', error);
+        }
+    }
+
+    // Función para actualizar la barra lateral con los chats
+    function updateChatHistory(chats) {
+        const chatHistoryList = document.querySelector('.chat-history');
+        chatHistoryList.innerHTML = ''; // Limpiar el historial de chats existente
+
+        chats.forEach(chat => {
+            const chatItem = document.createElement('li');
+            chatItem.textContent = chat.chatName; // Ajusta según el campo que desees mostrar
+            chatItem.setAttribute("id", chat.chatId);
+            chatItem.setAttribute("class", "chat");
+            chatHistoryList.appendChild(chatItem);
+        });
+    }
+
+    // Llama a la función para cargar los chats al cargar la página
+    loadChats();
+
+    // Función para agregar un nuevo chat
+    document.getElementById('add-chat-button').addEventListener('click', async () => {
+        const chatName = prompt('Ingresa el título del nuevo chat:');
+    
+        if (!chatName) {
+            alert('El título del chat es necesario.');
+            return;
+        }
+
+        try {
+            const response = await fetch(chatsUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({"chatName": chatName, "userId": localStorage.getItem("userId")})
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al agregar el chat');
+            }
+
+            // Vuelve a cargar los chats después de agregar uno nuevo
+            loadChats();
+        } catch (error) {
+            console.error('Error al agregar el chat:', error);
+        }
+    });
+});
+
+let chats = document.getElementsByClassName('chat');
+
+for(let i = 0; i < chats.length; i++) {
+  chats[i].addEventListener("click", function() {
+    console.log(chats[i])
+    const chatsUrl = `http://127.0.0.1:8000/messages/chat/${chats[i].id}`;
+
+    // Función para cargar los chats
+    async function loadMessages() {
+        try {
+            const response = await fetch(chatsUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener los chats');
+            }
+
+            const messages = await response.json();
+            updateMessages(messages);
+        } catch (error) {
+            console.error('Error al cargar los chats:', error);
+        }
+    }
+
+    function updateMessages(messages) {
+        chatMessages.innerHTML = ''; // Limpiar el historial de chats existente
+
+        messages.forEach(message => {
+            const newMessage = document.createElement('div');
+            newMessage.textContent = message.content; // Ajusta según el campo que desees mostrar
+            newMessage.id = message.messageId;
+            chatMessages.appendChild(newMessage);
+        });
+    }
+
+    loadMessages();
+  })
+}
+
 function addMessage(message, isUser = false) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
@@ -25,7 +140,7 @@ async function handleUserInput() {
         // Using a promise to delay the execution and handle async properly
         setTimeout(async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/users", {
+                const response = await fetch("http://127.0.0.1:8000/messages", {
                     method: "POST",
                     headers: {
                         Accept: 'application/json',
@@ -97,5 +212,73 @@ chatHistory.addEventListener('click', (e) => {
         // Aquí se simularía la carga del chat seleccionado
         chatMessages.innerHTML = '';
         addMessage(`Has seleccionado: ${e.target.textContent}`, false);
+    }
+});
+
+document.getElementById('send-button').addEventListener('click', async function() {
+    const userInput = document.getElementById('user-input').value;
+
+    if (!userInput.trim()) {
+        alert('Por favor, ingresa un mensaje.');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8000/messages', {  // Reemplaza con la URL de tu API
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ content: userInput }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // Actualiza la interfaz con el nuevo mensaje
+            const chatMessages = document.getElementById('chat-messages');
+            const newMessage = document.createElement('div');
+            newMessage.className = 'message user-message';
+            newMessage.textContent = userInput;
+            chatMessages.appendChild(newMessage);
+            document.getElementById('user-input').value = '';
+        } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'No se pudo enviar el mensaje.'}`);
+        }
+    } catch (error) {
+        alert('Error de red: ' + error.message);
+    }
+});
+
+document.getElementById('add-chat-button').addEventListener('click', async function() {
+    const chatName= prompt('Ingresa el título del nuevo chat:');
+    
+    if (!chatName) {
+        alert('El título del chat es necesario.');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://127.0.0.1:8000/chats', {  // Reemplaza con la URL de tu API
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ chatName: chatName, userId: localStorage.getItem("userId") }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // Actualiza la interfaz con el nuevo chat
+            const chatHistory = document.querySelector('.chat-history');
+            const newChatItem = document.createElement('li');
+            newChatItem.textContent = chatName;
+            chatHistory.appendChild(newChatItem);
+        } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.message || 'No se pudo agregar el chat.'}`);
+        }
+    } catch (error) {
+        alert('Error de red: ' + error.message);
     }
 });

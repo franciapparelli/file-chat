@@ -34,7 +34,7 @@ async def login(username: str, password: str):
             raise HTTPException(status_code=400, detail=f"Error al iniciar sesión: {e}")
         finally:
             conn.close()
-    return {"message": "Inicio de sesión exitoso"}
+    return {"message": "Inicio de sesión exitoso", "id": user[0]}
 
 @router.get("/")
 def get_users():
