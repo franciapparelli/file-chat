@@ -65,3 +65,52 @@ def messagesGemini(message):
     response = model.generate_content(message, stream=True)
     response.resolve()
     return response.text
+
+def insert_mensaje(conn, chatId, userId, content):
+    try:
+        sql_insert = """
+        INSERT INTO Messages (chatId, userId, content)
+        VALUES (?, ?, ?);
+        """
+        cursor = conn.cursor()
+        cursor.execute(sql_insert, (chatId, userId, content))
+        conn.commit()
+        print("Mensaje insertado exitosamente.")
+    except Exception as e:
+        print(f"Error al insertar el mensaje: {e}")
+    finally:
+        if conn:
+            conn.close()  # Cierra la conexión
+ 
+def insert_mensajeAI(conn, chatId, content):
+    try:
+        sql_insert = """
+        INSERT INTO Messages (chatId, userId, content)
+        VALUES (?, ?, ?);
+        """
+        userId = 3 # 3 porque es el id del system
+        cursor = conn.cursor()
+        cursor.execute(sql_insert, (chatId, userId, content))
+        conn.commit()
+        print("Mensaje AI insertado exitosamente.")
+    except Exception as e:
+        print(f"Error al insertar el mensaje AI: {e}")
+    finally:
+        if conn:
+            conn.close()  # Cierra la conexión
+ 
+def get_mensajes(conn, usuario):
+    try:
+        sql_select = """
+        SELECT * FROM tabla_chat WHERE usuario = ?;
+        """
+        cursor = conn.cursor()
+        cursor.execute(sql_select, (usuario,))
+        resultados = cursor.fetchall()
+       
+        return resultados
+    except Exception as e:
+        print(f"Error al insertar el mensaje: {e}")
+    finally:
+        if conn:
+            conn.close()  # Cierra la conexión

@@ -80,54 +80,32 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
-let chats = document.getElementsByClassName('chat');
-
-for(let i = 0; i < chats.length; i++) {
-  chats[i].addEventListener("click", function() {
-    console.log(chats[i])
-    const chatsUrl = `http://127.0.0.1:8000/messages/chat/${chats[i].id}`;
-
-    // Función para cargar los chats
-    async function loadMessages() {
-        try {
-            const response = await fetch(chatsUrl, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al obtener los chats');
-            }
-
-            const messages = await response.json();
-            updateMessages(messages);
-        } catch (error) {
-            console.error('Error al cargar los chats:', error);
-        }
-    }
-
-    function updateMessages(messages) {
-        chatMessages.innerHTML = ''; // Limpiar el historial de chats existente
-
-        messages.forEach(message => {
-            const newMessage = document.createElement('div');
-            newMessage.textContent = message.content; // Ajusta según el campo que desees mostrar
-            newMessage.id = message.messageId;
-            chatMessages.appendChild(newMessage);
-        });
-    }
-
-    loadMessages();
-  })
-}
-
 function addMessage(message, isUser = false) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
     messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
-    messageDiv.textContent = message;
+    function formatMessage(message) {
+        // Reemplazar negritas
+        let formattedMessage = message.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+        
+        // Reemplazar cursivas
+        formattedMessage = formattedMessage.replace(/\*(.*?)\*/g, "<i>$1</i>");
+        
+        // Reemplazar tachado
+        formattedMessage = formattedMessage.replace(/~~(.*?)~~/g, "<s>$1</s>");
+        
+        // Reemplazar saltos de línea
+        formattedMessage = formattedMessage.replace(/\n/g, "<br>");
+        
+        // Aquí puedes agregar más reglas de formato según lo necesites
+        
+        return formattedMessage;
+      }
+      
+      const formatted = formatMessage(message);
+      console.log(formatted);
+      
+    messageDiv.innerHTML = formatted;
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -138,49 +116,35 @@ async function handleUserInput() {
         addMessage(message, true);
         userInput.value = '';
 
-        // Using a promise to delay the execution and handle async properly
-        setTimeout(async () => {
-            try {
-                // const response = await fetch("http://127.0.0.1:8000/messages", {
-                //     method: "POST",
-                //     headers: {
-                //         Accept: 'application/json',
-                //         "Content-Type": "application/json"
-                //     },
-                //     body: JSON.stringify({ input: message }) // Wrap message in an object
-                    
-                // });
+        // Usar una promesa para retrasar la ejecución y manejar async correctamente
+        try {
+            const data = {
+                content: message,
+                chatId: selectedChatId, // Asegúrate de usar el chatId seleccionado
+                userId: localStorage.getItem("userId")
+            };
 
-                //MARK: Preguntarle a chappa
-                const data = {
-                    content: message,
-                    chatId: 1,
-                    userId:1
-                }
-                const response = await fetch('http://127.0.0.1:8000/messages/gemini',{
-                    method:"POST",
-                    headers: {
-                        Accept: 'application/json',
-                        "Content-Type": "application/json",
-                    },
-                    body:JSON.stringify(data)
-                })
-                //MARK: como funciona
-                
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+            const response = await fetch('http://127.0.0.1:8000/messages/gemini', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
 
-                const botResponse = await response.json(); // Assuming the server returns JSON
-                addMessage(botResponse.response); // Adjust based on the response structure
-            } catch (error) {
-                console.error('There was a problem with the fetch operation:', error);
-                addMessage('Sorry, there was an error processing your request.');
+            if (!response.ok) {
+                throw new Error('Error en la respuesta de la red');
             }
-        }, 1);
+
+            const botResponse = await response.json(); // Asumiendo que el servidor devuelve JSON
+            addMessage(botResponse.response); // Ajusta según la estructura de la respuesta del servidor
+        } catch (error) {
+            console.error('Hubo un problema con la operación fetch:', error);
+            addMessage('Lo siento, hubo un error al procesar tu solicitud.');
+        }
     }
 }
-
 
 function handleFileUpload(event) {
     const file = event.target.files[0];
@@ -194,7 +158,13 @@ function handleFileUpload(event) {
     }
 }
 
-sendButton.addEventListener('click', handleUserInput);
+sendButton.addEventListener('click', async (event) => {
+    // Previene el comportamiento por defecto del botón (como enviar un formulario)
+    event.preventDefault();
+
+    await handleUserInput();
+});
+
 userInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         handleUserInput();
@@ -222,13 +192,52 @@ document.addEventListener('click', () => {
     fileUploadMenu.style.display = 'none';
 });
 
-chatHistory.addEventListener('click', (e) => {
+chatHistory.addEventListener('click', async (e) => {
     if (e.target.tagName === 'LI') {
         chatHistory.querySelectorAll('li').forEach(li => li.classList.remove('active'));
         e.target.classList.add('active');
+
+        selectedChatId = e.target.id;
+        console.log(selectedChatId)
+
         // Aquí se simularía la carga del chat seleccionado
         chatMessages.innerHTML = '';
-        addMessage(`Has seleccionado: ${e.target.textContent}`, false);
+        const chatsUrl = `http://127.0.0.1:8000/messages/chat/${selectedChatId}`;
+
+    // Función para cargar los chats
+    async function loadMessages() {
+        try {
+            const response = await fetch(chatsUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al obtener los chats');
+            }
+
+            const messages = await response.json();
+            updateMessages(messages);
+        } catch (error) {
+            console.error('Error al cargar los chats:', error);
+        }
+    }
+
+    function updateMessages(messages) {
+        chatMessages.innerHTML = ''; // Limpiar el historial de chats existente
+
+        messages.forEach(message => {
+            let user = true
+            if(message.userId == 3){
+                user = false
+            }
+            addMessage(message.content, user)
+        });
+    }
+
+    loadMessages();
     }
 });
 

@@ -16,6 +16,7 @@ body, html {
     border-right: 1px solid #e0e0e0;
     overflow-y: auto;
     transition: width 0.3s ease;
+    max-width: 15vw;
 }
 .sidebar-header {
     padding: 20px;
@@ -48,6 +49,7 @@ body, html {
     flex-direction: column;
     background-color: #ffffff;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    max-width: 85vw;
 }
 .chat-header {
     background: linear-gradient(45deg, #1a73e8, #4285f4, #34a853, #fbbc05, #ea4335);
