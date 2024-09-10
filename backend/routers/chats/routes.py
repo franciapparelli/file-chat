@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from db.conn_db import create_connection
-from .crud import insert_chat, get_chat, get_all_chats
-from .models import Chat
+from .crud import insert_chat, get_chat, get_all_chats, delete_chat
+from .models import Chat, ChatId
 
 router = APIRouter()
 
@@ -38,6 +38,19 @@ async def read_chats():
         try:
             chats = get_all_chats(conn)
             return [{"chatId": chat[0], "chatName": chat[1], "userId": chat[2]} for chat in chats]
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error al obtener chats: {e}")
+        finally:
+            conn.close()
+
+@router.post("/delete")
+async def delete_chats(chatId: ChatId):
+    conn = create_connection()
+    if conn:
+        try:
+            chats = delete_chat(chatId.chatId, conn)
+            print(chatId.chatId)
+            return {"response": chats}
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Error al obtener chats: {e}")
         finally:

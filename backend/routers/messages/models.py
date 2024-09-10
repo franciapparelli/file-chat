@@ -7,6 +7,9 @@ class Message(BaseModel):
     userId: int
     content: str
 
+class MessageId(BaseModel):
+    messageId: int
+
 def create_messages_table(conn):
     try:
         sql_create_table = """

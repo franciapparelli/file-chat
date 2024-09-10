@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from db.conn_db import create_connection
-from .crud import insert_message, get_message, get_messages_by_chat
-from .models import Message
+from .crud import insert_message, get_message, get_messages_by_chat, delete_message
+from .models import Message, MessageId
 from pdf import messagesGemini
 
 router = APIRouter()
@@ -71,3 +71,16 @@ async def create_message(message: Message):
         finally:
             conn.close()
     return {"response": response}
+
+@router.post("/delete")
+async def delete_messages(messageId: MessageId):
+    conn = create_connection()
+    if conn:
+        try:
+            chats = delete_message(messageId.messageId, conn)
+            print(messageId.messageId)
+            return {"response": chats}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error al obtener chats: {e}")
+        finally:
+            conn.close()

@@ -37,3 +37,46 @@ def get_all_chats(conn):
     except Error as e:
         print(f"Error al obtener los chats: {e}")
         return None
+
+def delete_chat(chatId, conn):
+    try:
+        sql_delete_chat = """
+        DELETE
+            FROM Chats
+            WHERE chatId = ?;
+        """
+        cursor = conn.cursor()
+        cursor.execute(sql_delete_chat, (chatId,))
+        conn.commit()
+        return "Se ha borrado el chat correctamente"
+    except Error as e:
+        print(f"Error al borrar el chat: {e}")
+        return None
+    
+
+# @app.delete("/delete")
+# async def delete_chat(chat_id: int = Query(..., description="ID del chat que se desea eliminar")):
+#     print(chat_id)
+#     conn = create_connection()
+#     if conn is None:
+#         return {"error": "No se pudo conectar a la base de datos."}
+   
+#     response = delete_msg(conn, chat_id)
+#     return response
+
+# def delete_msg(conn, chat_id):
+#     try:
+#         sql_delete = """
+#         DELETE
+#             FROM tabla_chat
+#             WHERE chat_id = ?;
+#         """
+#         cursor = conn.cursor()
+#         cursor.execute(sql_delete, (chat_id,))
+#         conn.commit()
+#         print(f"Chat con chat_id {chat_id} eliminado exitosamente.")
+#     except Error as e:
+#         print(f"Error al eliminar el chat con chat_id {chat_id}: {e}")
+#     finally:
+#         if conn:
+#             conn.close()  # Cierra la conexión
