@@ -1,3 +1,5 @@
+# Comando para instalar gemini: pip install google-generativeai
+
 # import os
 # import google.generativeai as genai
 # import PIL.Image
@@ -45,3 +47,21 @@
 # #   prompt = input("")
 # #   response = chat_session.send_message([prompt, pdf])
 # #   print(response.text)
+
+import os
+import google.generativeai as genai
+
+os.environ["GOOGLE_API_KEY"] = "AIzaSyBp1RVo7MwQdrJsFxxMBUOK5XYxAVmTgKA"
+
+genai.configure()
+
+model = genai.GenerativeModel("gemini-1.5-flash")
+
+# TODO Make these files available on the local file system
+# You may need to update the file paths
+
+
+def messagesGemini(message):
+    response = model.generate_content(message, stream=True)
+    response.resolve()
+    return response.text

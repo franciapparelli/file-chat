@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from db.conn_db import create_connection
 from .crud import insert_message, get_message, get_messages_by_chat
 from .models import Message
+from pdf import messagesGemini
 
 router = APIRouter()
 
@@ -10,12 +11,13 @@ async def create_message(message: Message):
     conn = create_connection()
     if conn:
         try:
+            response = await messagesGemini(message.content)
             insert_message(conn, message.chatId, message.userId, message.content)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Error al crear mensaje: {e}")
         finally:
             conn.close()
-    return {"message": "Mensaje creado exitosamente"}
+    return {"message": "Mensaje creado exitosamente", "response": response}
 
 @router.get("/{messageId}")
 async def read_message(messageId: int):
@@ -57,3 +59,15 @@ async def read_messages_by_chat(chatId: int):
             raise HTTPException(status_code=400, detail=f"Error al obtener mensajes: {e}")
         finally:
             conn.close()
+
+@router.post("/gemini")
+async def create_message(message: Message):
+    conn = create_connection()
+    if conn:
+        try:
+            response = messagesGemini(message.content)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error al crear mensaje: {e}")
+        finally:
+            conn.close()
+    return {"response": response}

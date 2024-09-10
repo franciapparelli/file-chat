@@ -141,22 +141,38 @@ async function handleUserInput() {
         // Using a promise to delay the execution and handle async properly
         setTimeout(async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/messages", {
-                    method: "POST",
+                // const response = await fetch("http://127.0.0.1:8000/messages", {
+                //     method: "POST",
+                //     headers: {
+                //         Accept: 'application/json',
+                //         "Content-Type": "application/json"
+                //     },
+                //     body: JSON.stringify({ input: message }) // Wrap message in an object
+                    
+                // });
+
+                //MARK: Preguntarle a chappa
+                const data = {
+                    content: message,
+                    chatId: 1,
+                    userId:1
+                }
+                const response = await fetch('http://127.0.0.1:8000/messages/gemini',{
+                    method:"POST",
                     headers: {
                         Accept: 'application/json',
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ input: message }) // Wrap message in an object
-                    
-                });
-
+                    body:JSON.stringify(data)
+                })
+                //MARK: como funciona
+                
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
 
                 const botResponse = await response.json(); // Assuming the server returns JSON
-                addMessage(botResponse); // Adjust based on the response structure
+                addMessage(botResponse.response); // Adjust based on the response structure
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error);
                 addMessage('Sorry, there was an error processing your request.');
@@ -283,3 +299,10 @@ document.getElementById('add-chat-button').addEventListener('click', async funct
         alert('Error de red: ' + error.message);
     }
 });
+
+
+
+
+async function recivirChat(params) {
+    addMessage("Hola", false)
+}
