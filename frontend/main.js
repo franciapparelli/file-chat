@@ -35,7 +35,6 @@ function addMessage(message, isUser = false) {
     }
       
       const formatted = formatMessage(message);
-      console.log(formatted);
       
     messageDiv.innerHTML += formatted;
     chatMessages.appendChild(messageDiv);
@@ -52,6 +51,12 @@ function updateChatHistory(chats) {
         chatItem.textContent = chat.chatName; // Ajusta según el campo que desees mostrar
         chatItem.setAttribute("id", chat.chatId);
         chatItem.setAttribute("class", "chat");
+        const button = document.createElement('button')
+        button.setAttribute("class", "close_button")
+        button.setAttribute("id", chat.chatId)
+        button.onclick = () => deletechat(chat.chatId);
+        button.innerHTML = "🗑️"
+        chatItem.appendChild(button)
         chatHistoryList.appendChild(chatItem);
 
         // Agregar evento de clic para cargar los mensajes del chat seleccionado
@@ -131,39 +136,15 @@ function updateMessages(messages) {
     });
 }
 
+
+
 document.addEventListener('DOMContentLoaded', async (e) => {
     // Cargar los chats al iniciar
     loadChats();
 });
 
     // Función para agregar un nuevo chat
-    async function addChat(){
-        const chatName = prompt('Ingresa el título del nuevo chat:');
     
-        if (!chatName) {
-            alert('El título del chat es necesario.');
-            return;
-        }
-
-        try {
-            const response = await fetch(chatsUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({"chatName": chatName, "userId": localStorage.getItem("userId")})
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al agregar el chat');
-            }
-
-            // Vuelve a cargar los chats después de agregar uno nuevo
-            loadChats();
-        } catch (error) {
-            console.error('Error al agregar el chat:', error);
-        }
-    };
 
 form.addEventListener('submit', function(event) {
     event.preventDefault(); // Prevenir el comportamiento por defecto (refrescar la página)
@@ -258,7 +239,6 @@ chatHistory.addEventListener('click', async (e) => {
         e.target.classList.add('active');
 
         selectedChatId = e.target.id;
-        console.log(selectedChatId)
 
         // Aquí se simularía la carga del chat seleccionado
             chatMessages.innerHTML = '';
@@ -370,3 +350,22 @@ document.getElementById('add-chat-button').addEventListener('click', async funct
         alert('Error de red: ' + error.message);
     }
 });
+
+async function deletechat(id) {
+    try {
+        const data = {
+            chatId: id
+        };
+
+        const response = await fetch('http://127.0.0.1:8000/chats/delete', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+    } catch (error) {
+        alert('Error borrando el chat: ' + error.message);
+    }
+}

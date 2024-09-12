@@ -30,15 +30,6 @@
 # mi_pdf = genai.upload_file(path="Phrasal_Verbs_Vince.pdf", display_name="codigo_penalPDF")
 # pdf = genai.get_file(name=mi_pdf.name)
 
-# chat_session = model.start_chat(
-#   history =
-#   [
-#     {
-#       "role": "user",
-#       "parts": "Mi nombre es Franco"
-#     }
-#   ]
-# )
 
 # for file in genai.list_files():
 #   print(f"{file.display_name}, URI: {file.uri}")
@@ -55,14 +46,29 @@ os.environ["GOOGLE_API_KEY"] = "AIzaSyBp1RVo7MwQdrJsFxxMBUOK5XYxAVmTgKA"
 
 genai.configure()
 
-model = genai.GenerativeModel("gemini-1.5-flash")
-
 # TODO Make these files available on the local file system
 # You may need to update the file paths
 
-def messagesGemini(message):
-    response = model.generate_content(message, stream=True)
-    response.resolve()
+
+def messagesGemini(conn, message, chatId):
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    historial = []
+    chats = get_messages(conn, chatId)
+    for chat in chats:
+        if chat[1] == 3:
+            historial.append({
+                "role": "model",
+                "parts": chat[0]
+            })
+        else:
+            historial.append({
+                "role": "user",
+                "parts": chat[0]
+            })
+    chat_session = model.start_chat(
+      history = historial
+    )
+    response = chat_session.send_message(message)
     return response.text
 
 def insert_mensaje(conn, chatId, userId, content):
@@ -98,15 +104,14 @@ def insert_mensajeAI(conn, chatId, content):
         if conn:
             conn.close()  # Cierra la conexión
 
-def get_messages(conn, userId, chatId):
+def get_messages(conn, chatId):
     try:
         sql_select = """
-        SELECT * FROM tabla_chat WHERE userId = ? AND chatId = ?;
+        SELECT content, userId FROM Messages WHERE chatId = ? ORDER BY timestamp DESC LIMIT 10;
         """
         cursor = conn.cursor()
-        cursor.execute(sql_select, (userId, chatId))
+        cursor.execute(sql_select, (chatId,))
         resultados = cursor.fetchall()
-       
         return resultados
     except Exception as e:
         print(f"Error al insertar el mensaje: {e}")

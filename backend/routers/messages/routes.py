@@ -65,7 +65,8 @@ async def chat_msg(request: Message):
         insert_mensaje(conn, request.chatId, request.userId, request.content)
         
         # Obtener respuesta del modelo
-        response_message = messagesGemini(request.content)
+        conn = create_connection()
+        response_message = messagesGemini(conn, request.content, request.chatId)
         
         conn = create_connection()
         # Insertar el mensaje del modelo en la base de datos
@@ -74,10 +75,6 @@ async def chat_msg(request: Message):
         return {"response": response_message}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el procesamiento: {e}")
-    finally:
-        conn.close()
-   
-    return {"response": response_message}
 
 @router.post("/delete")
 async def delete_messages(messageId: MessageId):

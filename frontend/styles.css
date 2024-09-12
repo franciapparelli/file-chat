@@ -49,7 +49,7 @@ body, html {
     flex-direction: column;
     background-color: #ffffff;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
-    max-width: 85vw;
+    width: 85vw;
 }
 .chat-header {
     background: linear-gradient(45deg, #1a73e8, #4285f4, #34a853, #fbbc05, #ea4335);
@@ -169,4 +169,31 @@ body, html {
 }
 .file-input {
     display: none;
+}
+
+.chat {
+    display: flex;
+    justify-content: space-between;
+}
+
+.chat button {
+    display: none;
+}
+
+.chat:hover button{
+    display: inline;
+}
+
+.close_button {
+    background-color: #ff0000;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 3px 6px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
 }
