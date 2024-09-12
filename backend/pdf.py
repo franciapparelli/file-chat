@@ -60,7 +60,6 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 # TODO Make these files available on the local file system
 # You may need to update the file paths
 
-
 def messagesGemini(message):
     response = model.generate_content(message, stream=True)
     response.resolve()
@@ -98,14 +97,14 @@ def insert_mensajeAI(conn, chatId, content):
     finally:
         if conn:
             conn.close()  # Cierra la conexión
- 
-def get_mensajes(conn, usuario):
+
+def get_messages(conn, userId, chatId):
     try:
         sql_select = """
-        SELECT * FROM tabla_chat WHERE usuario = ?;
+        SELECT * FROM tabla_chat WHERE userId = ? AND chatId = ?;
         """
         cursor = conn.cursor()
-        cursor.execute(sql_select, (usuario,))
+        cursor.execute(sql_select, (userId, chatId))
         resultados = cursor.fetchall()
        
         return resultados

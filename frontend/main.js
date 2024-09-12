@@ -1,54 +1,140 @@
 const chatMessages = document.getElementById('chat-messages');
 const userInput = document.getElementById('user-input');
-const sendButton = document.getElementById('send-button');
-const fileUploadLabel = document.getElementById('file-upload-label');
-const fileUploadMenu = document.getElementById('file-upload-menu');
-const fileOptions = document.querySelectorAll('.file-option');
-const fileInputs = document.querySelectorAll('.file-input');
+// const fileUploadLabel = document.getElementById('file-upload-label');
+// const fileUploadMenu = document.getElementById('file-upload-menu');
+// const fileOptions = document.querySelectorAll('.file-option');
+// const fileInputs = document.querySelectorAll('.file-input');
 const chatHistory = document.querySelector('.chat-history');
+const form = document.getElementById('message-form');
+let userId = localStorage.getItem("userId");
+const chatsUrl = `http://127.0.0.1:8000/chats/${userId}`; // Ajusta la URL según tu configuración
 
-document.addEventListener('DOMContentLoaded', () => {
-    // URL del endpoint para obtener chats del usuario
-    let userId = localStorage.getItem("userId")
-    const chatsUrl = `http://127.0.0.1:8000/chats/${userId}`; // Ajusta la URL según tu configuración
-
-    // Función para cargar los chats
-    async function loadChats() {
-        try {
-            const response = await fetch(chatsUrl, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al obtener los chats');
-            }
-
-            const chats = await response.json();
-            updateChatHistory(chats);
-        } catch (error) {
-            console.error('Error al cargar los chats:', error);
+function addMessage(message, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message');
+    messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+    function formatMessage(message) {
+        // Reemplazar negritas
+        let formattedMessage = message.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+        
+        // Reemplazar tachado
+        formattedMessage = formattedMessage.replace(/~~(.*?)~~/g, "<s>$1</s>");
+        
+        // Reemplazar saltos de línea por <br>
+        formattedMessage = formattedMessage.replace(/\n/g, "<br>");
+        
+        // Reemplazar líneas que comienzan con * por viñetas
+        formattedMessage = formattedMessage.replace(/^\*(.*?)$/gm, "<li>$1</li>");
+        
+        // Envolver las viñetas en <ul> si existen
+        if (formattedMessage.includes("<li>")) {
+            formattedMessage = formattedMessage.replace(/<li>/g, "<ul><li>").replace(/<\/li>/g, "</li></ul>");
         }
+
+        return formattedMessage;
     }
+      
+      const formatted = formatMessage(message);
+      console.log(formatted);
+      
+    messageDiv.innerHTML += formatted;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
-    // Función para actualizar la barra lateral con los chats
-    function updateChatHistory(chats) {
-        const chatHistoryList = document.querySelector('.chat-history');
-        chatHistoryList.innerHTML = ''; // Limpiar el historial de chats existente
+// Función para actualizar la barra lateral con los chats
+function updateChatHistory(chats) {
+    const chatHistoryList = document.querySelector('.chat-history');
+    chatHistoryList.innerHTML = ''; // Limpiar el historial de chats existente
 
-        chats.forEach(chat => {
-            const chatItem = document.createElement('li');
-            chatItem.textContent = chat.chatName; // Ajusta según el campo que desees mostrar
-            chatItem.setAttribute("id", chat.chatId);
-            chatItem.setAttribute("class", "chat");
-            chatHistoryList.appendChild(chatItem);
+    chats.forEach(chat => {
+        const chatItem = document.createElement('li');
+        chatItem.textContent = chat.chatName; // Ajusta según el campo que desees mostrar
+        chatItem.setAttribute("id", chat.chatId);
+        chatItem.setAttribute("class", "chat");
+        chatHistoryList.appendChild(chatItem);
+
+        // Agregar evento de clic para cargar los mensajes del chat seleccionado
+        chatItem.addEventListener('click', () => {
+            loadMessages(chat.chatId); // Cargar mensajes del chat seleccionado
+            setActiveChat(chatItem);  // Marcar chat como activo
         });
-    }
+    });
 
-    // Llama a la función para cargar los chats al cargar la página
+    // Seleccionar el primer chat por defecto (si existe)
+    if (chats.length > 0) {
+        const firstChat = document.getElementById(chats[0].chatId);
+        firstChat.classList.add('active');
+        selectedChatId = chats[0].chatId
+        loadMessages(selectedChatId);
+    }
+}
+
+// Función para cargar los chats
+async function loadChats() {
+    try {
+        const response = await fetch(chatsUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al obtener los chats');
+        }
+
+        const chats = await response.json();
+        updateChatHistory(chats);
+    } catch (error) {
+        console.error('Error al cargar los chats:', error);
+    }
+}
+
+// Función para marcar el chat activo
+function setActiveChat(chatItem) {
+    const chatItems = document.getElementsByClassName('chat');
+    Array.from(chatItems).forEach(item => item.classList.remove('active'));
+    chatItem.classList.add('active');
+}
+
+ // Función para cargar los mensajes de un chat específico
+ async function loadMessages(chatId) {
+    const messagesUrl = `http://127.0.0.1:8000/messages/chat/${chatId}`;
+
+    try {
+        const response = await fetch(messagesUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al obtener los mensajes');
+        }
+
+        const messages = await response.json();
+        updateMessages(messages);
+    } catch (error) {
+        console.error('Error al cargar los mensajes:', error);
+    }
+}
+
+// Función para actualizar los mensajes en el chat
+function updateMessages(messages) {
+    chatMessages.innerHTML = ''; // Limpiar el historial de mensajes existente
+
+    messages.forEach(message => {
+        let user = message.userId == userId; // Verifica si el mensaje es del usuario actual
+        addMessage(message.content, user);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', async (e) => {
+    // Cargar los chats al iniciar
     loadChats();
+});
 
     // Función para agregar un nuevo chat
     async function addChat(){
@@ -78,49 +164,24 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error al agregar el chat:', error);
         }
     };
+
+form.addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevenir el comportamiento por defecto (refrescar la página)
+    handleUserInput(); // Llamar a la función que maneja el envío del mensaje
 });
 
-function addMessage(message, isUser = false) {
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
-    messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
-    function formatMessage(message) {
-        // Reemplazar negritas
-        let formattedMessage = message.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
-        
-        // Reemplazar cursivas
-        formattedMessage = formattedMessage.replace(/\*(.*?)\*/g, "<i>$1</i>");
-        
-        // Reemplazar tachado
-        formattedMessage = formattedMessage.replace(/~~(.*?)~~/g, "<s>$1</s>");
-        
-        // Reemplazar saltos de línea
-        formattedMessage = formattedMessage.replace(/\n/g, "<br>");
-        
-        // Aquí puedes agregar más reglas de formato según lo necesites
-        
-        return formattedMessage;
-      }
-      
-      const formatted = formatMessage(message);
-      console.log(formatted);
-      
-    messageDiv.innerHTML = formatted;
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
 async function handleUserInput() {
+    const userInput = document.getElementById("user-input");
     const message = userInput.value.trim();
+
     if (message) {
-        addMessage(message, true);
+        addMessage(message, true); // Añadir el mensaje del usuario al DOM sin recargar todo
         userInput.value = '';
 
-        // Usar una promesa para retrasar la ejecución y manejar async correctamente
         try {
             const data = {
                 content: message,
-                chatId: selectedChatId, // Asegúrate de usar el chatId seleccionado
+                chatId: selectedChatId, 
                 userId: localStorage.getItem("userId")
             };
 
@@ -133,64 +194,63 @@ async function handleUserInput() {
                 body: JSON.stringify(data),
             });
 
-            if (!response.ok) {
-                throw new Error('Error en la respuesta de la red');
+            if (!response.ok) throw new Error('Error en la respuesta de la red');
+
+            const result = await response.json();
+
+            // Añadir la respuesta del servidor al DOM
+            if (result && result.message) {
+                addMessage(result.message, false); // Añadir el mensaje del sistema al DOM
+            } else {
+                throw new Error('Respuesta inesperada del servidor');
             }
 
-            const botResponse = await response.json(); // Asumiendo que el servidor devuelve JSON
-            addMessage(botResponse.response); // Ajusta según la estructura de la respuesta del servidor
         } catch (error) {
-            console.error('Hubo un problema con la operación fetch:', error);
-            addMessage('Lo siento, hubo un error al procesar tu solicitud.');
+            console.error('Error procesando la respuesta:', error);
         }
     }
 }
 
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const fileType = event.target.accept.split('/')[0];
-        addMessage(`Archivo ${fileType} seleccionado: ${file.name}`, true);
-        setTimeout(() => {
-            const botResponse = `He recibido tu archivo ${fileType}. En una implementación real, aquí procesaríamos el archivo y responderíamos de acuerdo a su contenido.`;
-            addMessage(botResponse);
-        }, 1000);
-    }
-}
 
-sendButton.addEventListener('click', async (event) => {
-    // Previene el comportamiento por defecto del botón (como enviar un formulario)
-    event.preventDefault();
-
-    await handleUserInput();
-});
+// function handleFileUpload(event) {
+//     const file = event.target.files[0];
+//     if (file) {
+//         const fileType = event.target.accept.split('/')[0];
+//         addMessage(`Archivo ${fileType} seleccionado: ${file.name}`, true);
+//         setTimeout(() => {
+//             const botResponse = `He recibido tu archivo ${fileType}. En una implementación real, aquí procesaríamos el archivo y responderíamos de acuerdo a su contenido.`;
+//             addMessage(botResponse);
+//         }, 1000);
+//     }
+// }
 
 userInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
+        e.preventDefault()
         handleUserInput();
     }
 });
 
-fileUploadLabel.addEventListener('click', (e) => {
-    e.stopPropagation();
-    fileUploadMenu.style.display = fileUploadMenu.style.display === 'flex' ? 'none' : 'flex';
-});
+// fileUploadLabel.addEventListener('click', (e) => {
+//     e.stopPropagation();
+//     fileUploadMenu.style.display = fileUploadMenu.style.display === 'flex' ? 'none' : 'flex';
+// });
 
-fileOptions.forEach(option => {
-    option.addEventListener('click', (e) => {
-        const fileType = e.target.closest('.file-option').getAttribute('data-type');
-        document.getElementById(`file-upload-${fileType}`).click();
-        fileUploadMenu.style.display = 'none';
-    });
-});
+// fileOptions.forEach(option => {
+//     option.addEventListener('click', (e) => {
+//         const fileType = e.target.closest('.file-option').getAttribute('data-type');
+//         document.getElementById(`file-upload-${fileType}`).click();
+//         fileUploadMenu.style.display = 'none';
+//     });
+// });
 
-fileInputs.forEach(input => {
-    input.addEventListener('change', handleFileUpload);
-});
+// fileInputs.forEach(input => {
+//     input.addEventListener('change', handleFileUpload);
+// });
 
-document.addEventListener('click', () => {
-    fileUploadMenu.style.display = 'none';
-});
+// document.addEventListener('click', () => {
+//     fileUploadMenu.style.display = 'none';
+// });
 
 chatHistory.addEventListener('click', async (e) => {
     if (e.target.tagName === 'LI') {
@@ -201,7 +261,7 @@ chatHistory.addEventListener('click', async (e) => {
         console.log(selectedChatId)
 
         // Aquí se simularía la carga del chat seleccionado
-        chatMessages.innerHTML = '';
+            chatMessages.innerHTML = '';
         const chatsUrl = `http://127.0.0.1:8000/messages/chat/${selectedChatId}`;
 
     // Función para cargar los chats
@@ -242,6 +302,7 @@ chatHistory.addEventListener('click', async (e) => {
 });
 
 document.getElementById('send-button').addEventListener('click', async function() {
+    e.preventDefault()
     const userInput = document.getElementById('user-input').value;
 
     if (!userInput.trim()) {
@@ -276,7 +337,8 @@ document.getElementById('send-button').addEventListener('click', async function(
     }
 });
 
-document.getElementById('add-chat-button').addEventListener('click', async function() {
+document.getElementById('add-chat-button').addEventListener('click', async function(e) {
+    e.preventDefault()
     const chatName= prompt('Ingresa el título del nuevo chat:');
     
     if (!chatName) {
@@ -308,10 +370,3 @@ document.getElementById('add-chat-button').addEventListener('click', async funct
         alert('Error de red: ' + error.message);
     }
 });
-
-
-
-
-async function recivirChat(params) {
-    addMessage("Hola", false)
-}

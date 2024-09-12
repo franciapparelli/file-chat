@@ -37,3 +37,18 @@ def get_all_chats(conn):
     except Error as e:
         print(f"Error al obtener los chats: {e}")
         return None
+
+def delete_chat(chatId, conn):
+    try:
+        sql_delete_chat = """
+        DELETE
+            FROM Chats
+            WHERE chatId = ?;
+        """
+        cursor = conn.cursor()
+        cursor.execute(sql_delete_chat, (chatId,))
+        conn.commit()
+        return "Se ha borrado el chat correctamente"
+    except Error as e:
+        print(f"Error al borrar el chat: {e}")
+        return None

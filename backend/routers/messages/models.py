@@ -3,9 +3,12 @@ from sqlite3 import Error
 from pydantic import BaseModel
 
 class Message(BaseModel):
+    content: str
     chatId: int
     userId: int
-    content: str
+
+class MessageId(BaseModel):
+    messageId: int
 
 def create_messages_table(conn):
     try:

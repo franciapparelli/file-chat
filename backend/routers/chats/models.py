@@ -6,6 +6,9 @@ class Chat(BaseModel):
     chatName: str
     userId: int
 
+class ChatId(BaseModel):
+    chatId: int
+
 def create_chats_table(conn):
     try:
         sql_create_table = """

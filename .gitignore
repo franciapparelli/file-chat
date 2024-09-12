@@ -1,2 +1,7 @@
 backend/__pycache__
 backend/venv
+backend/db/__pycache__
+backend/routers/__pycache__
+backend/routers/chats/__pycache__
+backend/routers/users/__pycache__
+backend/routers/messages/__pycache__
